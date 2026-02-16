@@ -110,6 +110,8 @@ async def search_indeed_jobs(
         "page": str(page),
         "num_pages": "1",
         "date_posted": "month",
+        "country": "jp",
+        "language": "ja",
     }
 
     headers = {
