@@ -31,9 +31,9 @@ class Settings(BaseSettings):
     claude_max_tokens: int = 4096
     claude_temperature: float = 0.7
 
-    # Indeed API
-    indeed_publisher_id: str = ""
-    indeed_api_url: str = "https://api.indeed.com/ads/apisearch"
+    # Indeed / JSearch API (RapidAPI)
+    indeed_publisher_id: str = ""  # RapidAPI key for JSearch
+    indeed_api_url: str = "https://jsearch.p.rapidapi.com"
 
     # CORS
     cors_origins: str = "http://localhost:3000"
