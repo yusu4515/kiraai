@@ -1,6 +1,7 @@
 """Document generation API endpoints"""
 
 from typing import List
+from urllib.parse import quote
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -148,7 +149,7 @@ def download_pdf(
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(filename)}"},
     )
 
 
@@ -176,5 +177,5 @@ def download_docx(
     return Response(
         content=docx_bytes,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(filename)}"},
     )

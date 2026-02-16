@@ -105,10 +105,10 @@ export default function DashboardPage() {
               複数の転職サイトを横断して、最適な求人を検索します
             </p>
             <button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors opacity-50 cursor-not-allowed"
-              disabled
+              onClick={() => navigate('/jobs')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
             >
-              Coming Soon (Step 5)
+              求人を検索
             </button>
           </div>
 
@@ -122,10 +122,10 @@ export default function DashboardPage() {
               応募状況をカンバンボードで一覧管理できます
             </p>
             <button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors opacity-50 cursor-not-allowed"
-              disabled
+              onClick={() => navigate('/kanban')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
             >
-              Coming Soon (Step 6)
+              応募管理を開く
             </button>
           </div>
 
@@ -157,10 +157,10 @@ export default function DashboardPage() {
                 掲載情報・レポート・スカウト管理
               </p>
               <button
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors opacity-50 cursor-not-allowed"
-                disabled
+                onClick={() => navigate('/agent')}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
               >
-                Coming Soon (Step 7)
+                管理画面を開く
               </button>
             </div>
           )}

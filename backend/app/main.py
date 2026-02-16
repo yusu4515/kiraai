@@ -128,13 +128,16 @@ async def root() -> Dict[str, str]:
 from app.routers.auth import router as auth_router
 from app.routers.hearing import router as hearing_router
 from app.routers.documents import router as documents_router
+from app.routers.jobs import router as jobs_router
+from app.routers.applications import router as applications_router
+from app.routers.agent import router as agent_router
 
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(hearing_router, prefix="/api/hearing", tags=["AI Hearing"])
-# app.include_router(jobs_router, prefix="/api/jobs", tags=["Job Search"])
 app.include_router(documents_router, prefix="/api/documents", tags=["Documents"])
-# app.include_router(applications_router, prefix="/api/applications", tags=["Applications"])
-# app.include_router(agent_router, prefix="/api/agent", tags=["Agent"])
+app.include_router(jobs_router)
+app.include_router(applications_router)
+app.include_router(agent_router)
 
 
 # Exception handlers

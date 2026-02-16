@@ -5,6 +5,9 @@ import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import HearingPage from './pages/HearingPage'
 import DocumentsPage from './pages/DocumentsPage'
+import JobSearchPage from './pages/JobSearchPage'
+import KanbanPage from './pages/KanbanPage'
+import AgentDashboardPage from './pages/AgentDashboardPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
@@ -31,6 +34,9 @@ function App() {
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/hearing" element={<ProtectedRoute><HearingPage /></ProtectedRoute>} />
         <Route path="/documents" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
+        <Route path="/jobs" element={<ProtectedRoute><JobSearchPage /></ProtectedRoute>} />
+        <Route path="/kanban" element={<ProtectedRoute><KanbanPage /></ProtectedRoute>} />
+        <Route path="/agent" element={<ProtectedRoute><AgentDashboardPage /></ProtectedRoute>} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
