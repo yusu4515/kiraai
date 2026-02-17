@@ -1,5 +1,6 @@
-"""Job search API endpoints - combines external API and local DB search"""
+"""Job search API endpoints - combines external APIs and local DB search"""
 
+import asyncio
 import uuid
 from datetime import datetime
 
@@ -13,6 +14,7 @@ from app.utils.auth import get_current_user
 from app.schemas.job import JobSearchRequest, JobSearchResponse, JobResponse
 from app.services.job_search_service import search_jobs, seed_sample_jobs
 from app.services.indeed_service import search_indeed_jobs
+from app.services.careerjet_service import search_careerjet_jobs
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -65,23 +67,51 @@ async def search(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Search jobs - tries external API first, then falls back to local DB"""
+    """Search jobs - queries multiple external APIs in parallel, falls back to local DB"""
 
-    # Try external API (JSearch/Indeed)
-    api_result = await search_indeed_jobs(
+    # Query JSearch and Careerjet in parallel
+    jsearch_task = search_indeed_jobs(
+        keyword=request.keyword,
+        location=request.location,
+        page=request.page,
+        per_page=request.per_page,
+    )
+    careerjet_task = search_careerjet_jobs(
         keyword=request.keyword,
         location=request.location,
         page=request.page,
         per_page=request.per_page,
     )
 
-    if api_result and api_result.get("jobs"):
+    jsearch_result, careerjet_result = await asyncio.gather(
+        jsearch_task, careerjet_task, return_exceptions=True
+    )
+
+    # Handle exceptions from gather
+    if isinstance(jsearch_result, Exception):
+        jsearch_result = None
+    if isinstance(careerjet_result, Exception):
+        careerjet_result = None
+
+    # Combine results from all sources
+    all_api_jobs = []
+    total = 0
+
+    if jsearch_result and jsearch_result.get("jobs"):
+        all_api_jobs.extend(jsearch_result["jobs"])
+        total += jsearch_result.get("total", len(jsearch_result["jobs"]))
+
+    if careerjet_result and careerjet_result.get("jobs"):
+        all_api_jobs.extend(careerjet_result["jobs"])
+        total += careerjet_result.get("total", len(careerjet_result["jobs"]))
+
+    if all_api_jobs:
         # Save API results to DB for persistence
-        db_jobs = _save_api_jobs_to_db(db, api_result["jobs"])
+        db_jobs = _save_api_jobs_to_db(db, all_api_jobs)
 
         return JobSearchResponse(
             jobs=[JobResponse.model_validate(j) for j in db_jobs],
-            total=api_result.get("total", len(db_jobs)),
+            total=total,
             page=request.page,
             per_page=request.per_page,
         )

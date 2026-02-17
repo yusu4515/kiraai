@@ -17,6 +17,7 @@ from app.services.document_service import generate_resume_html, generate_career_
 from app.services.pdf_service import html_to_pdf
 from app.services.docx_service import html_to_docx
 from app.utils.auth import get_current_user
+from app.services.learning_data_service import record_document_data
 
 router = APIRouter()
 
@@ -91,6 +92,14 @@ def generate_document(
     db.add(doc)
     db.commit()
     db.refresh(doc)
+
+    # Record anonymized learning data
+    record_document_data(
+        db=db,
+        document_type=request.document_type,
+        profile_data=profile_data,
+        generated_html=html,
+    )
 
     return doc
 

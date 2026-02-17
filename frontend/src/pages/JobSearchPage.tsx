@@ -231,7 +231,20 @@ export default function JobSearchPage() {
                       selectedJob?.id === job.id ? 'border-blue-500 ring-1 ring-blue-500' : 'hover:border-gray-300'
                     }`}
                   >
-                    <h4 className="font-medium text-sm text-gray-800 line-clamp-1">{job.title}</h4>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-medium text-sm text-gray-800 line-clamp-1 flex-1">{job.title}</h4>
+                      {job.source && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                          job.source === 'careerjet'
+                            ? 'bg-orange-50 text-orange-600'
+                            : job.source === 'jsearch'
+                              ? 'bg-purple-50 text-purple-600'
+                              : 'bg-gray-50 text-gray-500'
+                        }`}>
+                          {job.source === 'careerjet' ? 'Careerjet' : job.source === 'jsearch' ? 'JSearch' : job.source}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500 mt-1">{job.company_name}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-gray-400">{job.location}</span>

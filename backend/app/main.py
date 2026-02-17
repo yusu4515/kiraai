@@ -131,6 +131,7 @@ from app.routers.documents import router as documents_router
 from app.routers.jobs import router as jobs_router
 from app.routers.applications import router as applications_router
 from app.routers.agent import router as agent_router
+from app.routers.learning_data import router as learning_data_router
 
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(hearing_router, prefix="/api/hearing", tags=["AI Hearing"])
@@ -138,6 +139,7 @@ app.include_router(documents_router, prefix="/api/documents", tags=["Documents"]
 app.include_router(jobs_router)
 app.include_router(applications_router)
 app.include_router(agent_router)
+app.include_router(learning_data_router)
 
 
 # Exception handlers

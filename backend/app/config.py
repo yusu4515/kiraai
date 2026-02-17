@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     indeed_publisher_id: str = ""  # RapidAPI key for JSearch
     indeed_api_url: str = "https://jsearch.p.rapidapi.com"
 
+    # Careerjet API
+    careerjet_affid: str = ""  # Careerjet affiliate ID
+
     # CORS
     cors_origins: str = "http://localhost:3000"
     cors_allow_credentials: bool = True

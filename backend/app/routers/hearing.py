@@ -20,6 +20,7 @@ from app.services.ai_service import (
     STEP_TITLES,
 )
 from app.utils.auth import get_current_user
+from app.services.learning_data_service import record_hearing_data
 
 router = APIRouter()
 
@@ -180,6 +181,13 @@ def advance_step(
         # Complete the session and save profile
         session.is_completed = True
         _save_profile_from_hearing(session, current_user, db)
+        # Record anonymized learning data
+        record_hearing_data(
+            db=db,
+            conversation_log=session.conversation_log or [],
+            extracted_data=session.extracted_data or {},
+            step=session.current_step,
+        )
     else:
         session.current_step += 1
 
