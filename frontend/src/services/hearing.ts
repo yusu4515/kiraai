@@ -49,8 +49,6 @@ export const hearingService = {
 
     const url = `${API_BASE_URL}/api/hearing/stream?${params.toString()}`
 
-    const eventSource = new EventSource(url)
-
     // EventSource doesn't support custom headers, so we use fetch with SSE parsing instead
     const abortController = new AbortController()
 
@@ -105,8 +103,6 @@ export const hearingService = {
           onError(err.message || 'Stream failed')
         }
       })
-
-    eventSource.close()
 
     return () => {
       abortController.abort()

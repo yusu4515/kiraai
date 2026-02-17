@@ -198,7 +198,13 @@ export default function JobSearchPage() {
                       </span>
                       {selectedJob.job_type && (
                         <span className="text-sm bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                          {selectedJob.job_type === 'full_time' ? '正社員' : selectedJob.job_type}
+                          {{
+                            full_time: '正社員',
+                            part_time: 'パートタイム',
+                            contract: '契約社員',
+                            intern: 'インターン',
+                            'フルタイム': '正社員',
+                          }[selectedJob.job_type] || selectedJob.job_type}
                         </span>
                       )}
                     </div>

@@ -25,12 +25,12 @@ export interface AgentDashboard {
 
 export const agentService = {
   getDashboard: async (): Promise<AgentDashboard> => {
-    const { data } = await api.get('/api/agent/dashboard')
+    const { data } = await api.get('/agent/dashboard')
     return data
   },
 
   getProfile: async (): Promise<AgentProfile> => {
-    const { data } = await api.get('/api/agent/profile')
+    const { data } = await api.get('/agent/profile')
     return data
   },
 
@@ -40,7 +40,7 @@ export const agentService = {
     logo_url?: string
     website_url?: string
   }): Promise<AgentProfile> => {
-    const { data } = await api.put('/api/agent/profile', updates)
+    const { data } = await api.put('/agent/profile', updates)
     return data
   },
 }

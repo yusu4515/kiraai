@@ -45,38 +45,38 @@ export interface ApplicationData {
 
 export const jobsService = {
   search: async (params: JobSearchRequest): Promise<JobSearchResponse> => {
-    const { data } = await api.post('/api/jobs/search', params)
+    const { data } = await api.post('/jobs/search', params)
     return data
   },
 
   get: async (jobId: string): Promise<Job> => {
-    const { data } = await api.get(`/api/jobs/${jobId}`)
+    const { data } = await api.get(`/jobs/${jobId}`)
     return data
   },
 
   seed: async (): Promise<{ count: number }> => {
-    const { data } = await api.post('/api/jobs/seed')
+    const { data } = await api.post('/jobs/seed')
     return data
   },
 }
 
 export const applicationsService = {
   list: async (): Promise<ApplicationData[]> => {
-    const { data } = await api.get('/api/applications')
+    const { data } = await api.get('/applications')
     return data
   },
 
   create: async (jobId: string, status = 'interested'): Promise<ApplicationData> => {
-    const { data } = await api.post('/api/applications', { job_id: jobId, status })
+    const { data } = await api.post('/applications', { job_id: jobId, status })
     return data
   },
 
   update: async (id: string, updates: { status?: string; notes?: string }): Promise<ApplicationData> => {
-    const { data } = await api.put(`/api/applications/${id}`, updates)
+    const { data } = await api.put(`/applications/${id}`, updates)
     return data
   },
 
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/api/applications/${id}`)
+    await api.delete(`/applications/${id}`)
   },
 }

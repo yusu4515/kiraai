@@ -61,9 +61,11 @@ export default function KanbanPage() {
   }
 
   const handleDelete = async (appId: string) => {
+    if (!window.confirm('この応募を削除しますか？')) return
     try {
       await applicationsService.delete(appId)
       setApplications((prev) => prev.filter((a) => a.id !== appId))
+      setError(null)
     } catch {
       setError('削除に失敗しました')
     }
@@ -140,9 +142,13 @@ export default function KanbanPage() {
                         <p className="text-xs text-gray-500 mt-1">
                           {app.job?.company_name || ''}
                         </p>
-                        {app.job?.salary_min && (
+                        {(app.job?.salary_min || app.job?.salary_max) && (
                           <p className="text-xs text-green-600 mt-1">
-                            {Math.round(app.job.salary_min / 10000)}万円〜
+                            {app.job?.salary_min && app.job?.salary_max
+                              ? `${Math.round(app.job.salary_min / 10000)}〜${Math.round(app.job.salary_max / 10000)}万円`
+                              : app.job?.salary_min
+                                ? `${Math.round(app.job.salary_min / 10000)}万円〜`
+                                : `〜${Math.round(app.job!.salary_max! / 10000)}万円`}
                           </p>
                         )}
                         <div className="flex gap-1 mt-2 flex-wrap">
