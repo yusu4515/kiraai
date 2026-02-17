@@ -39,6 +39,8 @@ export interface ApplicationData {
   status: string
   applied_at?: string
   notes?: string
+  document_ids?: string[]
+  cover_message?: string
   created_at: string
   updated_at: string
 }
@@ -73,6 +75,14 @@ export const applicationsService = {
 
   update: async (id: string, updates: { status?: string; notes?: string }): Promise<ApplicationData> => {
     const { data } = await api.put(`/applications/${id}`, updates)
+    return data
+  },
+
+  apply: async (id: string, documentIds: string[], coverMessage?: string): Promise<ApplicationData> => {
+    const { data } = await api.post(`/applications/${id}/apply`, {
+      document_ids: documentIds,
+      cover_message: coverMessage,
+    })
     return data
   },
 

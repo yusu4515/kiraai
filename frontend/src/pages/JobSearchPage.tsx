@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { jobsService, applicationsService, type Job, type JobSearchResponse } from '../services/jobs'
+import { documentsService, type DocumentResponse } from '../services/documents'
 
 export default function JobSearchPage() {
   const navigate = useNavigate()
@@ -12,6 +13,21 @@ export default function JobSearchPage() {
   const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set())
+
+  // Apply modal state
+  const [showApplyModal, setShowApplyModal] = useState(false)
+  const [applyingJob, setApplyingJob] = useState<Job | null>(null)
+  const [applyingAppId, setApplyingAppId] = useState<string | null>(null)
+  const [documents, setDocuments] = useState<DocumentResponse[]>([])
+  const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set())
+  const [coverMessage, setCoverMessage] = useState('')
+  const [isApplying, setIsApplying] = useState(false)
+  const [applySuccess, setApplySuccess] = useState(false)
+
+  useEffect(() => {
+    // Load user's documents for apply modal
+    documentsService.list().then(setDocuments).catch(() => {})
+  }, [])
 
   const handleSearch = async (page = 1) => {
     if (!keyword.trim()) return
@@ -49,11 +65,65 @@ export default function JobSearchPage() {
 
   const handleAddToKanban = async (job: Job) => {
     try {
-      await applicationsService.create(job.id, 'interested')
+      const app = await applicationsService.create(job.id, 'interested')
       setAppliedJobs((prev) => new Set(prev).add(job.id))
+      // Open apply modal
+      setApplyingJob(job)
+      setApplyingAppId(app.id)
+      setSelectedDocs(new Set())
+      setCoverMessage('')
+      setApplySuccess(false)
+      setShowApplyModal(true)
     } catch {
       setError('応募リストへの追加に失敗しました')
     }
+  }
+
+  const handleOpenApplyModal = async (job: Job) => {
+    // If already in kanban, find existing application
+    try {
+      const apps = await applicationsService.list()
+      const existing = apps.find((a) => a.job_id === job.id)
+      if (existing) {
+        setApplyingJob(job)
+        setApplyingAppId(existing.id)
+        setSelectedDocs(new Set())
+        setCoverMessage('')
+        setApplySuccess(false)
+        setShowApplyModal(true)
+      } else {
+        handleAddToKanban(job)
+      }
+    } catch {
+      handleAddToKanban(job)
+    }
+  }
+
+  const handleApply = async () => {
+    if (!applyingAppId) return
+    setIsApplying(true)
+    try {
+      await applicationsService.apply(
+        applyingAppId,
+        Array.from(selectedDocs),
+        coverMessage || undefined,
+      )
+      setApplySuccess(true)
+      setAppliedJobs((prev) => new Set(prev).add(applyingJob?.id || ''))
+    } catch {
+      setError('応募に失敗しました')
+    } finally {
+      setIsApplying(false)
+    }
+  }
+
+  const toggleDoc = (docId: string) => {
+    setSelectedDocs((prev) => {
+      const next = new Set(prev)
+      if (next.has(docId)) next.delete(docId)
+      else next.add(docId)
+      return next
+    })
   }
 
   const formatSalary = (min?: number, max?: number) => {
@@ -85,8 +155,9 @@ export default function JobSearchPage() {
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex justify-between items-center">
             <p className="text-red-700 text-sm">{error}</p>
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 text-sm">✕</button>
           </div>
         )}
 
@@ -210,11 +281,11 @@ export default function JobSearchPage() {
                     </div>
                     <div className="flex gap-2 mt-4">
                       <button
-                        onClick={() => handleAddToKanban(selectedJob)}
+                        onClick={() => handleOpenApplyModal(selectedJob)}
                         disabled={appliedJobs.has(selectedJob.id)}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                       >
-                        {appliedJobs.has(selectedJob.id) ? '追加済み' : '気になるリストに追加'}
+                        {appliedJobs.has(selectedJob.id) ? '応募済み' : 'この求人に応募する'}
                       </button>
                       {selectedJob.url && (
                         <a
@@ -255,6 +326,136 @@ export default function JobSearchPage() {
           </div>
         )}
       </main>
+
+      {/* Apply Modal */}
+      {showApplyModal && applyingJob && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            {applySuccess ? (
+              <div className="p-8 text-center">
+                <div className="text-5xl mb-4">🎉</div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">応募完了</h3>
+                <p className="text-gray-600 mb-2">
+                  <span className="font-medium">{applyingJob.company_name}</span> の
+                </p>
+                <p className="text-gray-800 font-medium mb-4">{applyingJob.title}</p>
+                <p className="text-sm text-gray-500 mb-6">
+                  応募管理ボードで進捗を管理できます
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => navigate('/kanban')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+                  >
+                    応募管理ボードへ
+                  </button>
+                  <button
+                    onClick={() => setShowApplyModal(false)}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg"
+                  >
+                    検索に戻る
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="p-6 border-b">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800">応募する</h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {applyingJob.company_name} - {applyingJob.title}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowApplyModal(false)}
+                      className="text-gray-400 hover:text-gray-600 text-xl"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-5">
+                  {/* Document Selection */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">添付書類を選択</h4>
+                    {documents.length === 0 ? (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <p className="text-sm text-yellow-700">
+                          まだ書類が作成されていません。
+                          <button
+                            onClick={() => navigate('/documents')}
+                            className="underline font-medium ml-1"
+                          >
+                            書類を作成する
+                          </button>
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {documents.map((doc) => (
+                          <label
+                            key={doc.id}
+                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                              selectedDocs.has(doc.id)
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedDocs.has(doc.id)}
+                              onChange={() => toggleDoc(doc.id)}
+                              className="w-4 h-4 text-blue-600 rounded"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">{doc.title}</p>
+                              <p className="text-xs text-gray-500">
+                                {doc.document_type === 'resume' ? '履歴書' : '職務経歴書'}
+                                {' ・ '}
+                                {new Date(doc.generated_at).toLocaleDateString('ja-JP')}
+                              </p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Cover Message */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">志望動機・メッセージ（任意）</h4>
+                    <textarea
+                      value={coverMessage}
+                      onChange={(e) => setCoverMessage(e.target.value)}
+                      placeholder="この企業に応募する理由や自己アピールを記入してください..."
+                      rows={4}
+                      className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-6 border-t bg-gray-50 rounded-b-xl flex gap-3 justify-end">
+                  <button
+                    onClick={() => setShowApplyModal(false)}
+                    className="text-gray-600 hover:text-gray-800 text-sm font-medium px-4 py-2"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={handleApply}
+                    disabled={isApplying || selectedDocs.size === 0}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium px-6 py-2 rounded-lg transition-colors"
+                  >
+                    {isApplying ? '送信中...' : `応募する（${selectedDocs.size}件の書類添付）`}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

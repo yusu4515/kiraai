@@ -13,6 +13,12 @@ class ApplicationCreate(BaseModel):
     notes: Optional[str] = None
 
 
+class ApplicationApply(BaseModel):
+    """Apply to a job with documents"""
+    document_ids: list[str] = []
+    cover_message: Optional[str] = None
+
+
 class ApplicationUpdate(BaseModel):
     status: Optional[str] = None
     notes: Optional[str] = None
@@ -25,6 +31,8 @@ class ApplicationResponse(BaseModel):
     status: str
     applied_at: Optional[datetime] = None
     notes: Optional[str] = None
+    document_ids: Optional[list[str]] = None
+    cover_message: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

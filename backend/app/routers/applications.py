@@ -11,8 +11,9 @@ from app.database import get_db
 from app.models.user import User
 from app.models.application import Application
 from app.models.job import Job
+from app.models.document import Document
 from app.utils.auth import get_current_user
-from app.schemas.application import ApplicationCreate, ApplicationUpdate, ApplicationResponse
+from app.schemas.application import ApplicationCreate, ApplicationApply, ApplicationUpdate, ApplicationResponse
 
 router = APIRouter(prefix="/api/applications", tags=["applications"])
 
@@ -64,6 +65,46 @@ def create_application(
         applied_at=datetime.utcnow() if request.status == "applied" else None,
     )
     db.add(app)
+    db.commit()
+    db.refresh(app)
+    return ApplicationResponse.model_validate(app)
+
+
+@router.post("/{application_id}/apply", response_model=ApplicationResponse)
+def apply_to_job(
+    application_id: uuid.UUID,
+    request: ApplicationApply,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Apply to a job with attached documents - updates status to 'applied'"""
+    app = (
+        db.query(Application)
+        .filter(
+            Application.id == application_id,
+            Application.user_id == current_user.id,
+        )
+        .first()
+    )
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    # Validate documents belong to this user
+    if request.document_ids:
+        for doc_id in request.document_ids:
+            doc = db.query(Document).filter(
+                Document.id == doc_id,
+                Document.user_id == current_user.id,
+            ).first()
+            if not doc:
+                raise HTTPException(status_code=400, detail=f"Document {doc_id} not found")
+
+    app.status = "applied"
+    app.applied_at = datetime.utcnow()
+    app.document_ids = request.document_ids
+    app.cover_message = request.cover_message
+    app.updated_at = datetime.utcnow()
+
     db.commit()
     db.refresh(app)
     return ApplicationResponse.model_validate(app)

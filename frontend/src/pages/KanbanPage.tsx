@@ -151,6 +151,16 @@ export default function KanbanPage() {
                                 : `〜${Math.round(app.job!.salary_max! / 10000)}万円`}
                           </p>
                         )}
+                        {app.applied_at && (
+                          <p className="text-[10px] text-blue-500 mt-1">
+                            応募日: {new Date(app.applied_at).toLocaleDateString('ja-JP')}
+                          </p>
+                        )}
+                        {app.document_ids && app.document_ids.length > 0 && (
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            添付書類: {app.document_ids.length}件
+                          </p>
+                        )}
                         <div className="flex gap-1 mt-2 flex-wrap">
                           {STATUSES.filter((s) => s.key !== app.status).map((s) => (
                             <button

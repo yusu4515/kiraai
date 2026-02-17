@@ -149,7 +149,7 @@ async def search_indeed_jobs(
         logger.error(f"JSearch API error: {e.response.status_code} - {e.response.text[:200]}")
         return None
     except Exception as e:
-        logger.error(f"JSearch API request failed: {e}")
+        logger.error(f"JSearch API request failed: {type(e).__name__}: {e}", exc_info=True)
         return None
 
 

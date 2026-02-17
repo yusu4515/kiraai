@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from app.database import Base
 
@@ -18,5 +18,7 @@ class Application(Base):
     status = Column(String(50), default="interested")  # interested, applied, interviewing, offered, rejected
     applied_at = Column(DateTime, nullable=True)
     notes = Column(Text, nullable=True)
+    document_ids = Column(JSONB, default=list)  # list of document UUIDs attached
+    cover_message = Column(Text, nullable=True)  # application cover message
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
